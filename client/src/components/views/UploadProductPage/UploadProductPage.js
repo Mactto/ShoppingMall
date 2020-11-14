@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import {Typography, Button, Form, Input } from 'antd';
 import FileUpload from '../../utils/FileUpload';
+import Axios from 'axios';
 
 const {Title} = Typography;
 const {TextArea} = Input;
@@ -14,7 +15,7 @@ const Continents = [
     {key: 7, value: "Antarctica"}
 ]
 
-function UploadProductPage() {
+function UploadProductPage(props) {
     const [name, setName] = useState("");
     const [discription, setDiscription] = useState("");
     const [price, setPrice] = useState(0);
@@ -37,14 +38,48 @@ function UploadProductPage() {
         setContinent(e.currentTarget.value);
     }
 
+    const updateImages = (newImages) => {
+        setImages(newImages)
+    }
+
+    const submitHandler = (e) => {
+        e.preventDefault();
+        console.log("submit event");
+
+        if (!name || !discription || !price || !continent || !images) {
+            return alert("모든 값을 넣어주세요!");
+        }
+        
+        // 서버에 채운 값들을 request로 보낸다.
+        const body = {
+            writer: props.user.userData._id,
+            title: name,
+            discription: discription,
+            price: price,
+            images: images,
+            continent: continent,
+        }
+
+        Axios.post("/api/product", body)
+        .then(response => {
+            if(response.data.success) {
+                alert("상품 업로드 완료!");
+                props.history.push('/');
+            }
+            else {
+                alert("상품 업로드 실패!");
+            }
+        })
+    }
+
     return (
         <div style={{ maxWidth: '700px', margin: '2rem auto'}}>
             <div style={{ textAlign: 'center', marginBottom: '2rem'}}>
                 <Title level={2}> 여행 상품 업로드 </Title>
             </div>
 
-            <Form>
-                <FileUpload />
+            <Form onSubmit={submitHandler}>
+                <FileUpload refreshFunction={updateImages}/>
                 <br />
                 <br />
                 <label>이름</label>
@@ -66,9 +101,9 @@ function UploadProductPage() {
                 </select>
                 <br />
                 <br />
-                <Button>
+                <button type='submit'>
                     확인
-                </Button>
+                </button>
             </Form>
         </div>
     )

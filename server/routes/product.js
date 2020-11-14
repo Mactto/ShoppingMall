@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
+const { Product } = require('../models/Product');
 
 //=================================
 //             Product
@@ -10,7 +11,7 @@ var storage = multer.diskStorage({
         cb(null, 'uploads/')
     },
     filename: function(req, file, cb) {
-        cb(null, `${Data.now()}_${file.originalname}`)
+        cb(null, `${Date.now()}_${file.originalname}`)
     }
 })
 
@@ -22,9 +23,17 @@ router.post('/image', (req, res) => {
         if (err) {
             return req.json({success: false, err})
         }
-        // res.req.file에 아무것도 존재 x 원인불명
-        return res.json({success: true})
+        return res.json({success: true, filePath: res.req.file.path, fileName: res.req.file.filename})
     })
+});
+
+router.post('/', (req, res) => {
+    // 받아온 정보들을 DB에 넣어줌
+    const product = new Product(req.body);
+    product.save((err) => {
+        if(err) return res.status(400).json({success:false, err});
+        return res.status(200).json({success:true});
+    });
 });
 
 module.exports = router;
