@@ -5,7 +5,9 @@ import {Icon, Col, Card, Row} from 'antd';
 import Meta from 'antd/lib/card/Meta';
 import ImageSlider from '../../utils/ImageSlider';
 import CheckBox from './Sections/CheckBox';
-import { continents } from './Sections/Datas';
+import { continents, price } from './Sections/Datas';
+import RadioBox from './Sections/RadioBox';
+import SearchFeature from './Sections/SearchFeature';
 
 function LandingPage() {
     const [products, setProducts] = useState([]);
@@ -16,6 +18,7 @@ function LandingPage() {
         continents: [],
         price: []
     })
+    const [searchTerm, setSearchTerm] = useState('');
 
     const getProducts = (body) => {
         axios.post('/api/product/products', body)
@@ -64,21 +67,54 @@ function LandingPage() {
         setSkip(skip)
     }
 
-    const showFilteredResults = (filters) => {
+    const showFilteredResults = (filter) => {
         let body = {
             skip: 0,
             limit: Limit,
-            filters: filters
+            filters: filter
         }
 
         getProducts(body)
         setSkip(0)
     }
 
-    const handleFilters = (filters, category) => {
+    const handlePrice = (value) => {
+        const data = price;
+        let array = [];
+
+        for (let key in data) {
+            if (data[key]._id === parseInt(value, 10)) {
+                array = data[key].array;
+            }
+        }
+        return array;
+    }
+
+    const handleFilters = (filter, category) => {
         const newFilters = {...filters}
-        newFilters[category] = filters;
-        showFilteredResults()
+        newFilters[category] = filter;
+
+        if (category === "price") {
+            let priceValues = handlePrice(filter)
+            newFilters[category] = priceValues
+        }
+
+        showFilteredResults(newFilters)
+        setFilters(newFilters)
+    }
+
+    const updateSearchTerm = (newSearchTerm) => {
+        setSearchTerm(newSearchTerm);
+
+        let body = {
+            skip: 0,
+            limit: Limit,
+            filter: filters,
+            searchTerm: newSearchTerm
+        }
+        setSkip(0);
+        setSearchTerm(newSearchTerm);
+        getProducts(body);
     }
 
     return (
@@ -86,17 +122,28 @@ function LandingPage() {
             <div style={{textAlign: 'center' }}>
                 <h2>Let's Travel Anywhere </h2>
             </div>
-            {/* Filter */}
 
-            {/* CheckBox */}
-            <CheckBox list={continents} handleFilters={filter => handleFilters(filters, "continent")}/>
+            <Row gutter={[16, 16]}>
+                <Col lg={12} xs={24}>
+                    <CheckBox list={continents} handleFilters={filter => handleFilters(filter, "continent")}/>
+                </Col>
+                <Col lg={12} xs={24}>
+                    <RadioBox list={price} handleFilters={filter => handleFilters(filter, "price")}/>
+                </Col>
+            </Row>
+            
+            <div style={{display:"flex", justifyContent:"flex-end", margin: '1rem auto'}}>
+                <SearchFeature refreshFunction={updateSearchTerm}/>
+            </div>
+
+            <br />
 
             <Row gutter={[16, 16]}>
                 {renderCards}
             </Row>
 
             <br />
-            
+
             {postSize >= Limit && 
                 <div style={{display: 'flex', justifyContent: 'center'}}>
                     <button onClick={loadMoreHandler}>더보기</button>
