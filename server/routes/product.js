@@ -29,6 +29,7 @@ router.post('/image', (req, res) => {
 
 router.post('/', (req, res) => {
     // 받아온 정보들을 DB에 넣어줌
+    console.log(req.body);
     const product = new Product(req.body);
     product.save((err) => {
         if(err) return res.status(400).json({success:false, err});
@@ -82,5 +83,17 @@ router.post('/products', (req, res) => {
         })
     }
 })
+
+router.get('/product_by_id', (req, res) => {
+    let type = req.query.type;
+    let productId = req.query.id;
+
+    Product.find({_id: productId})
+    .populate('writer')
+    .exec((err, product) => {
+        if(err) return res.status(400).send({success: false, err});
+        return res.status(200).send({success: true, product});
+    })
+});
 
 module.exports = router;
