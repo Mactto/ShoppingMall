@@ -8,7 +8,6 @@ function ProductInfo(props) {
 
     const clickHandler = () => {
         dispatch(addToCart(props.detail._id))
-
     }
 
     return (

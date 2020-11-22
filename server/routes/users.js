@@ -79,37 +79,37 @@ router.post("/addToCart", auth, (req, res) => {
                     duplicate = true;
                 }
             })
-        })
 
-        if (duplicate) {
-            User.findOneAndUpdate(
-                {_id: req.user._id, "cart.id" : req.body.productId},
-                {$inc : {"cart.$.quantity" : 1}},
-                {new:true},
-                (err, userInfo) => {
-                    if (err) return res.status(400).json({success:false, err})
-                    res.status(200).send(userInfo.cart)
-                }
-            )
-        } else {
-            User.findOneAndUpdate(
-                {_id: req.user._id},
-                {
-                    $push: {
-                        cart: {
-                            id: req.body.productId,
-                            quantity: 1,
-                            data: Date.now()
-                        }
+            if (duplicate) {
+                User.findOneAndUpdate(
+                    {_id: req.user._id, "cart.id" : req.body.productId},
+                    {$inc : {"cart.$.quantity" : 1}},
+                    {new:true},
+                    (err, userInfo) => {
+                        if (err) return res.status(400).json({success:false, err})
+                        res.status(200).send(userInfo.cart)
                     }
-                },
-                { new:true },
-                (err, userInfo) => {
-                    if (err) return res.status(400).json({success:false, err})
-                    return res.status(200).send(userInfo.cart);
-                }
-            )
-        }
+                )
+            } else {
+                User.findOneAndUpdate(
+                    {_id: req.user._id},
+                    {
+                        $push: {
+                            cart: {
+                                id: req.body.productId,
+                                quantity: 1,
+                                data: Date.now()
+                            }
+                        }
+                    },
+                    { new:true },
+                    (err, userInfo) => {
+                        if (err) return res.status(400).json({success:false, err})
+                        return res.status(200).send(userInfo.cart);
+                    }
+                )
+            }
+        })
 });
 
 module.exports = router;
